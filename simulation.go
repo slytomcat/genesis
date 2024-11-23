@@ -39,7 +39,7 @@ func run(args []string) {
 	switch args[1] {
 	case "store":
 		e = NewRandEnvironment(&c.Environment)
-		err = e.MakeAndStore(envFile, c.Simulation.Ages)
+		err = e.MakeAndStore(envFile, c.Simulation.Years)
 		if err != nil {
 			fmt.Printf("Error: %s\n", err)
 		}
@@ -47,33 +47,33 @@ func run(args []string) {
 	case "random":
 		e = NewRandEnvironment(&c.Environment)
 	case "stored":
-		e, err = NewStoredEnvironment(envFile, c.Environment.Capacity, c.Environment.Over_cap_factor)
+		e, err = NewStoredEnvironment(envFile, c.Environment.Capacity, c.Environment.OverCapFactor)
 		if err != nil {
 			fmt.Printf("Error: %s\n", err)
-			fmt.Printf(usage, args[0])
 			return
 		}
 	default:
 		fmt.Printf("Error: unknown command %s\n", args[1])
+		fmt.Printf(usage, args[0])
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go InterruptHandler(cancel)
-	pM := NewPopulation(&c.Population, c.Population.Age_factor, metricsM)
+	pM := NewPopulation(&c.Population, c.Population.AgeFactor, metricsM)
 	pI := NewPopulation(&c.Population, 0, metricsI)
 	copy(pI.Creatures, pM.Creatures)
 	defer results()
 	defer close(pM.workCh)
 	defer close(pI.workCh)
-	for year := range c.Simulation.Ages {
+	for year := range c.Simulation.Years {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 		}
+		e.Next()
 		pM.Next(e)
 		pI.Next(e)
-		e.Next()
 		fmt.Printf("year %5d,\tMortal: %6d\tdiff: %+5d,\tImmortal: %6d\tfactor: %s\n", year, pM.Size(), pM.Size()-pI.Size(), pI.Size(), e.factorsList())
 		if pM.Size() == 0 || pI.Size() == 0 {
 			return

@@ -9,29 +9,29 @@ import (
 const cfgFileName = "settings.yaml"
 
 type Env struct {
-	Factors         int     // factors count
-	Factor_vol      int     // factor initial volume
-	Inc             float64 // factor incretion
-	Delta           float64 // factor deviation
-	Capacity        int     // env capacity limit
-	Over_cap_factor float64 // over capacity penalty
+	Factors       int     `yaml:"factors"`         // factors count
+	FactorVol     int     `yaml:"factor_vol"`      // factor initial volume
+	Inc           float64 `yaml:"inc"`             // factor incretion
+	Delta         float64 `yaml:"delta"`           // factor deviation
+	Capacity      int     `yaml:"capacity"`        // env capacity limit
+	OverCapFactor float64 `yaml:"over_cap_factor"` // over capacity penalty
 }
 
 type Pop struct {
-	Init_size      int     // initial population size
-	Chromosomes    int     // number of chromosomes
-	Gens           int     // initial chromosome length = env factor initial volume
-	Match_factor   float64 // env match factor
-	Bern_p         float64 // bern probability
-	Child_factor   float64 // capacity factor incretion for children
-	Mutation_p     float64 // mutation probability
-	Mutation_delta int     // mutation size
-	Ferity_age     int     // ferity age
-	Age_factor     float64 // age factor
+	InitSize       int     `yaml:"init_size"`      // initial population size
+	Chromosomes    int     `yaml:"chromosomes"`    // number of chromosomes
+	Gens           int     `yaml:"gens"`           // initial chromosome length = env factor initial volume
+	MatchFactor    float64 `yaml:"match_factor"`   // env match factor
+	BirthP         float64 `yaml:"birth_p"`        // birth probability
+	ChildFactor    float64 `yaml:"child_factor"`   // capacity factor incretion for children
+	MutationP      float64 `yaml:"mutation_p"`     // mutation probability
+	Mutation_delta int     `yaml:"mutation_delta"` // mutation size
+	FertilityAge   int     `yaml:"fertility_age"`  // ferity age
+	AgeFactor      float64 `yaml:"age_factor"`     // age factor
 }
 
 type Sym struct {
-	Ages int
+	Years int
 }
 
 type Cfg struct {

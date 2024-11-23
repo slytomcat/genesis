@@ -13,7 +13,7 @@ type Metrics struct {
 	popCount  map[int]int
 	dAgeCount map[int]int
 	popHist   []int
-	bernHist  []int
+	bornHist  []int
 	deathHist []int
 }
 
@@ -26,7 +26,7 @@ func (m *Metrics) PopStore(size, bern, dead int) {
 	v, _ := m.popCount[size]
 	m.popCount[size] = v + 1
 	m.popHist = append(m.popHist, size)
-	m.bernHist = append(m.bernHist, bern)
+	m.bornHist = append(m.bornHist, bern)
 	m.deathHist = append(m.deathHist, dead)
 }
 
@@ -89,7 +89,7 @@ func (m *Metrics) Store() {
 	min, avg, max, _ := minMidMaxTotal(m.popCount)
 	xDesc := fmt.Sprintf("min/avg/max population size: %v / %v / %v", min, avg, max)
 	MakeAndSaveHistogram(m.name, "Population size by age", "age", xDesc, HistXY(m.popHist))
-	MakeAndSaveHistogram(m.name+"_bern", "Bern by age", "age", "size", HistXY(m.bernHist))
+	MakeAndSaveHistogram(m.name+"_bern", "Bern by age", "age", "size", HistXY(m.bornHist))
 	MakeAndSaveHistogram(m.name+"_dead", "Dead by age", "age", "size", HistXY(m.deathHist))
 	MakeAndSaveHistogram(m.name+"_sizes", "Count of years by population size", xDesc, "count", xyVals(m.popCount, 100, 1))
 	min, avg, max, total := minMidMaxTotal(m.dAgeCount)

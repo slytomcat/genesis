@@ -9,24 +9,24 @@ import (
 const chSize = 2024
 
 type Population struct {
-	Creatures   []*Creature
-	Gens        int
-	Mutate      func(int) int
-	BernP       float64
-	ChildFactor float64
-	FerityAge   int
-	MatchFactor float64
-	AgeFactor   float64
-	metrics     *Metrics
-	workCh      chan func()
+	Creatures    []*Creature
+	Chromosomes  int
+	Mutate       func(int) int
+	BirthP       float64
+	ChildFactor  float64
+	FertilityAge int
+	MatchFactor  float64
+	AgeFactor    float64
+	metrics      *Metrics
+	workCh       chan func()
 }
 
 func NewPopulation(cp *Pop, ageFactor float64, m *Metrics) *Population {
 	p := Population{
-		Creatures: make([]*Creature, cp.Init_size),
-		Gens:      cp.Chromosomes,
+		Creatures:   make([]*Creature, cp.InitSize),
+		Chromosomes: cp.Chromosomes,
 		Mutate: func(g int) int {
-			if cp.Mutation_p > rand.Float64() {
+			if cp.MutationP > rand.Float64() {
 				v := 1 + rand.ExpFloat64()/12.5*float64(cp.Mutation_delta)
 				if v > float64(g)-1 {
 					v = float64(g - 1)
@@ -38,16 +38,16 @@ func NewPopulation(cp *Pop, ageFactor float64, m *Metrics) *Population {
 			}
 			return g
 		},
-		MatchFactor: cp.Match_factor,
-		BernP:       cp.Bern_p,
-		ChildFactor: cp.Child_factor,
-		FerityAge:   cp.Ferity_age,
-		AgeFactor:   ageFactor,
-		metrics:     m,
-		workCh:      make(chan func(), chSize),
+		MatchFactor:  cp.MatchFactor,
+		BirthP:       cp.BirthP,
+		ChildFactor:  cp.ChildFactor,
+		FertilityAge: cp.FertilityAge,
+		AgeFactor:    ageFactor,
+		metrics:      m,
+		workCh:       make(chan func(), chSize),
 	}
-	for i := range cp.Init_size {
-		p.Creatures[i] = NewCreature(p.Mutate, cp.Chromosomes, cp.Gens, cp.Mutation_p)
+	for i := range cp.InitSize {
+		p.Creatures[i] = NewCreature(p.Mutate, cp.Chromosomes, cp.Gens, cp.MutationP)
 	}
 	for range runtime.NumCPU() / 2 {
 		go func() {
@@ -62,7 +62,7 @@ func NewPopulation(cp *Pop, ageFactor float64, m *Metrics) *Population {
 type workResults struct {
 	crs      []*Creature
 	deathAge *int
-	bern     int
+	born     int
 }
 
 func (p *Population) Next(e *Environment) {
@@ -81,7 +81,7 @@ func (p *Population) Next(e *Environment) {
 				}
 				if child != nil {
 					wr.crs = append(wr.crs, child)
-					wr.bern = 1
+					wr.born = 1
 				}
 				res <- wr
 			}
@@ -89,7 +89,7 @@ func (p *Population) Next(e *Environment) {
 	}()
 	newP := []*Creature{}
 	deathCount := 0
-	bernCount := 0
+	bornCount := 0
 	for range p.Creatures {
 		wr := <-res
 		newP = append(newP, wr.crs...)
@@ -97,10 +97,10 @@ func (p *Population) Next(e *Environment) {
 			p.metrics.dAgeStore(*wr.deathAge)
 			deathCount++
 		}
-		bernCount += wr.bern
+		bornCount += wr.born
 	}
 	p.Creatures = newP
-	p.metrics.PopStore(p.Size(), bernCount, deathCount)
+	p.metrics.PopStore(p.Size(), bornCount, deathCount)
 }
 
 func (p Population) RandomPartner() *Creature {

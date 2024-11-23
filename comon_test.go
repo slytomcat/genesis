@@ -44,7 +44,7 @@ func TestMutation(t *testing.T) {
 	for m := range 10 {
 		p := NewPopulation(&Pop{
 			Chromosomes:    1,
-			Mutation_p:     1,
+			MutationP:      1,
 			Mutation_delta: m + 1,
 		}, 0, nil)
 		hist = make(map[int]int)

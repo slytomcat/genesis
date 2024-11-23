@@ -22,11 +22,11 @@ func NewCreature(mutation func(int) int, chromosomes, gens int, mutP float64) *C
 func (c *Creature) Year(e *Environment, p *Population, capacityFactor float64) (bool, *Creature) {
 	c.age++
 	var child *Creature
-	if c.age > p.FerityAge && p.BernP > rand.Float64() {
+	if c.age > p.FertilityAge && p.BirthP > rand.Float64() {
 		child = c.Bern(p)
 	}
-	if c.age < p.FerityAge { // increase capacity factor for yang creatures
-		capacityFactor += p.ChildFactor * capacityFactor * float64((p.FerityAge-c.age)/p.FerityAge)
+	if c.age < p.FertilityAge { // increase capacity factor for yang creatures
+		capacityFactor += p.ChildFactor * capacityFactor * float64((p.FertilityAge-c.age)/p.FertilityAge)
 	}
 	deadP := p.MatchFactor*e.Match(c)*capacityFactor + p.AgeFactor*float64(c.age)
 	return deadP > rand.Float64(), child

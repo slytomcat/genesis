@@ -25,14 +25,14 @@ func NewRandEnvironment(ce *Env) *Environment {
 	e := Environment{
 		Factors:       make([]float64, ce.Factors),
 		Capacity:      ce.Capacity,
-		OverCapFactor: ce.Over_cap_factor,
+		OverCapFactor: ce.OverCapFactor,
 		inc:           make([]float64, ce.Factors),
 		delta:         ce.Delta,
 	}
 	e.Next = e.next
 	for i := range e.Factors {
 		e.inc[i] = ce.Inc + ce.Inc/4*float64(i)
-		e.Factors[i] = float64(ce.Factor_vol)
+		e.Factors[i] = float64(ce.FactorVol)
 	}
 	return &e
 }
