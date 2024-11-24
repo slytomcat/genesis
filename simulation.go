@@ -10,15 +10,24 @@ import (
 
 const (
 	envFile = "env.csv"
-	usage   = `Usage:
+)
+
+var (
+	version = "local"
+)
+
+func usage(app string) {
+	fmt.Printf(`%s v. %s
+Usage:
 	%s <cmd>
 
 Commands:
 	store - make random environment and store it to file
 	random - start simulation with random environment
 	stored - start simulation with stored environment
-`
-)
+	version, -v, --version - prints version and exits
+`, app, version, app)
+}
 
 func main() {
 	run(os.Args)
@@ -28,7 +37,7 @@ func run(args []string) {
 	var e *Environment
 	var err error
 	if len(args) != 2 {
-		fmt.Printf(usage, args[0])
+		usage(args[0])
 		return
 	}
 	c, err := readConfig()
@@ -52,9 +61,13 @@ func run(args []string) {
 			fmt.Printf("Error: %s\n", err)
 			return
 		}
+	case "version", "-v", "--version":
+		fmt.Printf("%s v. %s\n", args[0], version)
+		return
 	default:
 		fmt.Printf("Error: unknown command %s\n", args[1])
-		fmt.Printf(usage, args[0])
+		usage(args[0])
+		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
