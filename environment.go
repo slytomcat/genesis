@@ -38,7 +38,7 @@ func NewRandEnvironment(ce *Env) *Environment {
 }
 
 func (e *Environment) CapacityFactor(pSize int) float64 {
-	return e.OverCapFactor * math.Pow(math.Exp(float64(pSize-e.Capacity)/float64(e.Capacity)), 10)
+	return 1 + e.OverCapFactor*math.Pow(math.Exp(float64(pSize-e.Capacity)/float64(e.Capacity)), 10)
 }
 
 func (e *Environment) next() {

@@ -88,7 +88,7 @@ func HistXY(d []int) *plotter.XYs {
 func (m *Metrics) Store() {
 	min, avg, max, _ := minMidMaxTotal(m.popCount)
 	xDesc := fmt.Sprintf("min/avg/max population size: %v / %v / %v", min, avg, max)
-	MakeAndSaveHistogram(m.name, "Population size by age", "age", xDesc, HistXY(m.popHist))
+	MakeAndSaveHistogram(m.name, "Population size by age", xDesc, "size", HistXY(m.popHist))
 	MakeAndSaveHistogram(m.name+"_bern", "Bern by age", "age", "size", HistXY(m.bornHist))
 	MakeAndSaveHistogram(m.name+"_dead", "Dead by age", "age", "size", HistXY(m.deathHist))
 	MakeAndSaveHistogram(m.name+"_sizes", "Count of years by population size", xDesc, "count", xyVals(m.popCount, 100, 1))
