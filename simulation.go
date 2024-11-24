@@ -69,36 +69,38 @@ func run(args []string) {
 		usage(args[0])
 		return
 	}
+	pM := NewPopulation(&c.Population, c.Population.AgeFactor, metricsM)
+	pI := NewPopulation(&c.Population, 0, metricsI)
+	for i, c := range pM.Creatures {
+		pI.Creatures[i] = c.Copy()
+	}
+	defer close(pM.workCh)
+	defer close(pI.workCh)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go InterruptHandler(cancel)
-	pM := NewPopulation(&c.Population, c.Population.AgeFactor, metricsM)
-	pI := NewPopulation(&c.Population, 0, metricsI)
-	copy(pI.Creatures, pM.Creatures)
 	defer results()
-	defer close(pM.workCh)
-	defer close(pI.workCh)
 	for year := range c.Simulation.Years {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-		}
-		e.Next()
-		pM.Next(e)
-		pI.Next(e)
-		fmt.Printf("year %5d,\tMortal: %6d\tdiff: %+5d,\tImmortal: %6d\tfactor: %s\n", year, pM.Size(), pM.Size()-pI.Size(), pI.Size(), e.factorsList())
-		if pM.Size() == 0 || pI.Size() == 0 {
-			return
+			e.Next()
+			pM.Next(e)
+			pI.Next(e)
+			fmt.Printf("year %5d,\tMortal: %6d\tdiff: %+5d,\tImmortal: %6d\tfactor: %s\n", year, pM.Size(), pM.Size()-pI.Size(), pI.Size(), e.factorsList())
+			if pM.Size() == 0 || pI.Size() == 0 {
+				return
+			}
 		}
 	}
 }
 
-func InterruptHandler(cancel func()) {
+func InterruptHandler(onFinish func()) {
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
-	cancel()
+	onFinish()
 }
 
 func results() {

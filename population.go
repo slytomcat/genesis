@@ -1,9 +1,12 @@
 package main
 
 import (
-	"math"
+	"cmp"
+	"fmt"
 	"math/rand"
+	"os"
 	"runtime"
+	"slices"
 )
 
 const chSize = 2024
@@ -23,21 +26,9 @@ type Population struct {
 
 func NewPopulation(cp *Pop, ageFactor float64, m *Metrics) *Population {
 	p := Population{
-		Creatures:   make([]*Creature, cp.InitSize),
-		Chromosomes: cp.Chromosomes,
-		Mutate: func(g int) int {
-			if cp.MutationP > rand.Float64() {
-				v := 1 + rand.ExpFloat64()/12.5*float64(cp.Mutation_delta)
-				if v > float64(g)-1 {
-					v = float64(g - 1)
-				}
-				if rand.Intn(2) == 0 {
-					v = -v
-				}
-				return g + int(math.Round(v))
-			}
-			return g
-		},
+		Creatures:    make([]*Creature, cp.InitSize),
+		Chromosomes:  cp.Chromosomes,
+		Mutate:       MutateFunc(cp.MutationP, float64(cp.Mutation_delta)),
 		MatchFactor:  cp.MatchFactor,
 		BirthP:       cp.BirthP,
 		ChildFactor:  cp.ChildFactor,
@@ -109,4 +100,17 @@ func (p Population) RandomPartner() *Creature {
 
 func (p *Population) Size() int {
 	return len(p.Creatures)
+}
+
+func (p *Population) Dump() {
+	file, err := os.Create(p.metrics.name + "_population_dump")
+	if err != nil {
+		fmt.Printf("dump file creation error: %v", err)
+		return
+	}
+	defer file.Close()
+	slices.SortFunc(p.Creatures, func(a, b *Creature) int { return cmp.Compare(a.age, b.age) })
+	for _, c := range p.Creatures {
+		file.WriteString(c.String() + "\n")
+	}
 }

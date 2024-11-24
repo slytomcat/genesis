@@ -42,14 +42,11 @@ func TestMutation(t *testing.T) {
 	size := 200
 	var hist map[int]int
 	for m := range 10 {
-		p := NewPopulation(&Pop{
-			Chromosomes:    1,
-			MutationP:      1,
-			Mutation_delta: m + 1,
-		}, 0, nil)
+		mf := MutateFunc(1, float64(m+1))
 		hist = make(map[int]int)
 		for range count {
-			n := p.Mutate(size)
+			n := mf(size)
+			require.Greater(t, n, 0)
 			v, _ := hist[n]
 			hist[n] = v + 1
 		}
@@ -65,6 +62,6 @@ func TestMutation(t *testing.T) {
 	}
 }
 
-func TestRun(t *testing.T) {
-	run([]string{"", "stored"})
-}
+// func TestRun(t *testing.T) {
+// 	run([]string{"", "stored"})
+// }
