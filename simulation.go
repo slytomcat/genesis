@@ -52,9 +52,11 @@ func run(args []string) {
 		if err != nil {
 			fmt.Printf("Error: %s\n", err)
 		}
+		e.SaveHistograms()
 		return
 	case "random":
 		e = NewRandEnvironment(&c.Environment)
+		defer e.SaveHistograms()
 	case "stored":
 		e, err = NewStoredEnvironment(envFile, c.Environment.Capacity, c.Environment.OverCapFactor)
 		if err != nil {

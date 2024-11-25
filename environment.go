@@ -19,6 +19,7 @@ type Environment struct {
 	inc           []float64
 	delta         float64
 	Next          func()
+	Stored        [][]float64
 }
 
 func NewRandEnvironment(ce *Env) *Environment {
@@ -28,6 +29,7 @@ func NewRandEnvironment(ce *Env) *Environment {
 		OverCapFactor: ce.OverCapFactor,
 		inc:           make([]float64, ce.Factors),
 		delta:         ce.Delta,
+		Stored:        make([][]float64, 0, 100),
 	}
 	e.Next = e.next
 	for i := range e.Factors {
@@ -42,9 +44,12 @@ func (e *Environment) CapacityFactor(pSize int) float64 {
 }
 
 func (e *Environment) next() {
+	st := make([]float64, len(e.Factors))
 	for i, f := range e.Factors {
 		e.Factors[i] = f + rand.Float64()*e.inc[i] + math.Pow(rand.Float64()*2*e.delta-e.delta, 3)
+		st[i] = e.Factors[i]
 	}
+	e.Stored = append(e.Stored, st)
 }
 
 func (e *Environment) Match(c *Creature) float64 {
@@ -70,28 +75,33 @@ func (e *Environment) factorsList() string {
 }
 
 func (e *Environment) MakeAndStore(fileName string, simAges int) error {
-	factors := len(e.Factors)
-	XYss := make([]plotter.XYs, factors)
-	for i := range factors {
-		XYss[i] = make(plotter.XYs, simAges)
-	}
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	for year := range simAges {
+	for range simAges {
 		e.next()
-		_, err := f.Write([]byte(e.factorsList() + "\n"))
-		if err != nil {
+		if _, err := f.Write([]byte(e.factorsList() + "\n")); err != nil {
 			return err
 		}
-		for i, f := range e.Factors {
+	}
+	return nil
+}
+
+func (e *Environment) SaveHistograms() {
+	factors := len(e.Factors)
+	XYss := make([]plotter.XYs, factors)
+	for i := range factors {
+		XYss[i] = make(plotter.XYs, len(e.Stored))
+	}
+	for year, factors := range e.Stored {
+		for i, f := range factors {
 			XYss[i][year].X = float64(year)
 			XYss[i][year].Y = f
 		}
 	}
-	for i := range len(e.Factors) {
+	for i := range factors {
 		MakeAndSaveHistogram(fmt.Sprintf("Environment_%d", i), fmt.Sprintf("Environment factor #%d", i), "age", "value", &XYss[i])
 	}
 	sMax := e.Capacity + e.Capacity/5
@@ -101,7 +111,6 @@ func (e *Environment) MakeAndStore(fileName string, simAges int) error {
 		xys[s].Y = e.CapacityFactor(s)
 	}
 	MakeAndSaveHistogram("Capacity_factor", "Capacity factor", "population size", "value", &xys)
-	return nil
 }
 
 func NewStoredEnvironment(fileName string, capacity int, overCapFactor float64) (*Environment, error) {
@@ -113,9 +122,10 @@ func NewStoredEnvironment(fileName string, capacity int, overCapFactor float64) 
 	e := Environment{
 		Capacity:      capacity,
 		OverCapFactor: overCapFactor,
+		Stored:        *stored,
 	}
 	e.Next = func() {
-		e.Factors = (*stored)[i]
+		e.Factors = (e.Stored)[i]
 		i++
 	}
 	return &e, nil
