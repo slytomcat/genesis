@@ -113,7 +113,7 @@ func (e *Environment) SaveHistograms() {
 	MakeAndSaveHistogram("Capacity_factor", "Capacity factor", "population size", "value", &xys)
 }
 
-func NewStoredEnvironment(fileName string, capacity int, overCapFactor float64) (*Environment, error) {
+func NewStoredEnvironment(fileName string, capacity int, overCapFactor float64, years int) (*Environment, error) {
 	stored, err := readCsv(fileName)
 	if err != nil {
 		return nil, err
@@ -123,6 +123,9 @@ func NewStoredEnvironment(fileName string, capacity int, overCapFactor float64) 
 		Capacity:      capacity,
 		OverCapFactor: overCapFactor,
 		Stored:        *stored,
+	}
+	if len(*stored) < years {
+		return nil, fmt.Errorf("stored environment has smaller years (%d) than required (%d) make new env via 'store' or decrease simulation years in settings", len(*stored), years)
 	}
 	e.Next = func() {
 		e.Factors = (e.Stored)[i]

@@ -58,7 +58,7 @@ func run(args []string) {
 		e = NewRandEnvironment(&c.Environment)
 		defer e.SaveHistograms()
 	case "stored":
-		e, err = NewStoredEnvironment(envFile, c.Environment.Capacity, c.Environment.OverCapFactor)
+		e, err = NewStoredEnvironment(envFile, c.Environment.Capacity, c.Environment.OverCapFactor, c.Simulation.Years)
 		if err != nil {
 			fmt.Printf("Error: %s\n", err)
 			return
@@ -79,6 +79,10 @@ func run(args []string) {
 	defer close(pM.workCh)
 	defer close(pI.workCh)
 	ctx, cancel := context.WithCancel(context.Background())
+	diffCum := 0
+	defer func() {
+		fmt.Printf("cumulative diff: %d\n", diffCum)
+	}()
 	defer cancel()
 	go InterruptHandler(cancel)
 	defer results()
@@ -90,7 +94,9 @@ func run(args []string) {
 			e.Next()
 			pM.Next(e)
 			pI.Next(e)
-			fmt.Printf("year %5d,\tMortal: %6d\tdiff: %+5d,\tImmortal: %6d\tfactor: %s\n", year, pM.Size(), pM.Size()-pI.Size(), pI.Size(), e.factorsList())
+			diff := pM.Size() - pI.Size()
+			fmt.Printf("year %5d,\tMortal: %6d\tdiff: %+5d,\tImmortal: %6d\tfactor: %s\n", year, pM.Size(), diff, pI.Size(), e.factorsList())
+			diffCum += diff
 			if pM.Size() == 0 || pI.Size() == 0 {
 				return
 			}

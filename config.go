@@ -31,7 +31,7 @@ type Pop struct {
 }
 
 type Sym struct {
-	Years int
+	Years int `yaml:"years"` // number of years to simulate
 }
 
 type Cfg struct {

@@ -50,7 +50,7 @@ func minMidMaxTotal(m map[int]int) (float64, float64, float64, float64) {
 	return float64(min), sum / count, float64(max), count
 }
 
-// xyVals makes two axils slices []float64 from m[x]y source.
+// xyVals makes *plotter.XYs from m[x]y source.
 // Count of x values can be reduced by xDiv. The y-values are collected on new x values.
 // the resulted y values can be normalized by yDiv (y=y/yDiv)
 func xyVals(m map[int]int, xDiv int, yDiv float64) *plotter.XYs {
@@ -75,24 +75,23 @@ func xyVals(m map[int]int, xDiv int, yDiv float64) *plotter.XYs {
 	return &xys
 }
 
-func HistXY(d []int) *plotter.XYs {
+func HistXY(d []int, xDiv int, yDiv float64) *plotter.XYs {
 	n := len(d)
-	xys := make(plotter.XYs, n)
+	xys := make(map[int]int, n)
 	for i, v := range d {
-		xys[i].X = float64(i)
-		xys[i].Y = float64(v)
+		xys[i] = v
 	}
-	return &xys
+	return xyVals(xys, xDiv, yDiv)
 }
 
 func (m *Metrics) Store() {
 	min, avg, max, _ := minMidMaxTotal(m.popCount)
 	xDesc := fmt.Sprintf("min/avg/max population size: %v / %v / %v", min, avg, max)
-	MakeAndSaveHistogram(m.name, "Population size by age", xDesc, "size", HistXY(m.popHist))
-	MakeAndSaveHistogram(m.name+"_bern", "Bern by age", "age", "size", HistXY(m.bornHist))
-	MakeAndSaveHistogram(m.name+"_dead", "Dead by age", "age", "size", HistXY(m.deathHist))
-	MakeAndSaveHistogram(m.name+"_sizes", "Count of years by population size", xDesc, "count", xyVals(m.popCount, 100, 1))
+	MakeAndSaveHistogram(m.name, "Population size by age", xDesc, "size", HistXY(m.popHist, 1, 1))
+	MakeAndSaveHistogram(m.name+"_bern", "Bern by age", "age", "size", HistXY(m.bornHist, 20, 1))
+	MakeAndSaveHistogram(m.name+"_dead", "Dead by age", "age", "size", HistXY(m.deathHist, 20, 1))
+	MakeAndSaveHistogram(m.name+"_sizes", "Count of years by population size", xDesc, "years", xyVals(m.popCount, len(m.popCount)/20, 1))
 	min, avg, max, total := minMidMaxTotal(m.dAgeCount)
 	xDesc = fmt.Sprintf("min/avg/max death age: %v / %v / %v\ntotal creatures: %v", min, avg, max, total)
-	MakeAndSaveHistogram(m.name+"_deaths", "Death probability by age", xDesc, "count", xyVals(m.dAgeCount, 1, total))
+	MakeAndSaveHistogram(m.name+"_deaths", "Death probability by age", xDesc, "percent", xyVals(m.dAgeCount, 1, total))
 }
