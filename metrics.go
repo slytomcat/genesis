@@ -23,7 +23,7 @@ var (
 )
 
 func (m *Metrics) PopStore(size, bern, dead int) {
-	v, _ := m.popCount[size]
+	v := m.popCount[size]
 	m.popCount[size] = v + 1
 	m.popHist = append(m.popHist, size)
 	m.bornHist = append(m.bornHist, bern)
@@ -31,7 +31,7 @@ func (m *Metrics) PopStore(size, bern, dead int) {
 }
 
 func (m *Metrics) dAgeStore(age int) {
-	v, _ := m.dAgeCount[age]
+	v := m.dAgeCount[age]
 	m.dAgeCount[age] = v + 1
 }
 
