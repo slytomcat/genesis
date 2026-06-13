@@ -23,7 +23,7 @@ type Pop struct {
 	Gens           int     `yaml:"gens"`           // initial chromosome length = env factor initial volume
 	MatchFactor    float64 `yaml:"match_factor"`   // env match factor
 	BirthP         float64 `yaml:"birth_p"`        // birth probability
-	ChildFactor    float64 `yaml:"child_factor"`   // capacity factor incretion for children
+	ChildFactor    float64 `yaml:"child_factor"`   // capacity factor decrease for children
 	MutationP      float64 `yaml:"mutation_p"`     // mutation probability
 	Mutation_delta int     `yaml:"mutation_delta"` // mutation size
 	FertilityAge   int     `yaml:"fertility_age"`  // ferity age

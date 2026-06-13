@@ -33,20 +33,20 @@ func NewRandEnvironment(ce *Env) *Environment {
 	}
 	e.Next = e.next
 	for i := range e.Factors {
-		e.inc[i] = ce.Inc + ce.Inc/4*float64(i)
+		e.inc[i] = ce.Inc + ce.Inc/4*(rand.Float64()*2-1)
 		e.Factors[i] = float64(ce.FactorVol)
 	}
 	return &e
 }
 
 func (e *Environment) CapacityFactor(pSize int) float64 {
-	return 1 + e.OverCapFactor*math.Pow(math.Exp(float64(pSize-e.Capacity)/float64(e.Capacity)), 10)
+	return 1 + e.OverCapFactor*math.Pow(math.Exp(float64(pSize-e.Capacity)/float64(e.Capacity)), 8)
 }
 
 func (e *Environment) next() {
 	st := make([]float64, len(e.Factors))
 	for i, f := range e.Factors {
-		e.Factors[i] = f + rand.Float64()*e.inc[i] + math.Pow(rand.Float64()*2*e.delta-e.delta, 3)
+		e.Factors[i] = f + rand.Float64()*e.inc[i] + math.Pow(1.3*(rand.Float64()*2*e.delta-e.delta), 3)
 		st[i] = e.Factors[i]
 	}
 	e.Stored = append(e.Stored, st)
@@ -55,6 +55,7 @@ func (e *Environment) next() {
 func (e *Environment) Match(c *Creature) float64 {
 	res := 0.0
 	for _, f := range e.Factors {
+		// find closest chromosome to factor f
 		r := math.MaxFloat64
 		for _, g := range c.chromosomes {
 			if v := math.Abs(float64(g) - f); v < r {
@@ -66,12 +67,13 @@ func (e *Environment) Match(c *Creature) float64 {
 	return res / float64(len(e.Factors))
 }
 
+var r = strings.Builder{}
 func (e *Environment) factorsList() string {
-	r := ""
+	r.Reset()
 	for _, f := range e.Factors {
-		r += fmt.Sprintf("%4.3f, ", f)
+		fmt.Fprintf(&r, "%4.3f, ", f)
 	}
-	return r[:len(r)-2]
+	return r.String()[:r.Len()-2]
 }
 
 func (e *Environment) MakeAndStore(fileName string, simAges int) error {
@@ -118,7 +120,6 @@ func NewStoredEnvironment(fileName string, capacity int, overCapFactor float64, 
 	if err != nil {
 		return nil, err
 	}
-	i := 0
 	e := Environment{
 		Capacity:      capacity,
 		OverCapFactor: overCapFactor,
@@ -127,6 +128,7 @@ func NewStoredEnvironment(fileName string, capacity int, overCapFactor float64, 
 	if len(*stored) < years {
 		return nil, fmt.Errorf("stored environment has smaller years (%d) than required (%d) make new env via 'store' or decrease simulation years in settings", len(*stored), years)
 	}
+	i := 0
 	e.Next = func() {
 		e.Factors = (e.Stored)[i]
 		i++
@@ -145,7 +147,7 @@ func readCsv(fileName string) (*[][]float64, error) {
 	if err != nil {
 		return nil, err
 	}
-	stored := [][]float64{}
+	stored := make([][]float64, 0, len(data))
 	for _, s := range data {
 		sl := []float64{}
 		for _, fs := range s {

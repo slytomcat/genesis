@@ -14,7 +14,7 @@
     - c. the age factor: it is increasing each year on some value
   - creatures on immortal population always has the death factor 'c' equal to zero
 
-The simulation utility is written on golang and requires go v.23.1 or newer for building the binary.
+The simulation utility is written on golang and requires go v.25.0 or newer for building the binary.
 
 ## Building
 
@@ -29,14 +29,14 @@ First review and change the settings into [`settings.yaml`](settings.yaml) file.
     ./genesis random
 ### generate and save a new random environment
 
-    ./genesis store   
+    ./genesis store
 ### run simulation within the stored environment
 
-    ./genesis stored  
-    
+    ./genesis stored
+
 
 ## results
 The utility outputs the each yer simulation results. The simulation can be interrupted by pressing CTRL+C.
 When the simulation finished or interrupted it generates 2 sets `svg` images with diagrams for mortal and immortal populations.
 
-The creation and storage of the random environment creates following `svg` images: the capacity factor and individual files for each the growing factor of environment. It is also creates or overwrites the `env.csv` file (file with stored environment). This file is used for simulation within the stored environment. 
+The creation and storage of the random environment creates following `svg` images: the capacity factor and individual files for each the growing factor of environment. It is also creates or overwrites the `env.csv` file (file with stored environment). This file is used for simulation within the stored environment.

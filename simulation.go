@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 const (
@@ -34,8 +35,6 @@ func main() {
 }
 
 func run(args []string) {
-	var e *Environment
-	var err error
 	if len(args) != 2 {
 		usage(args[0])
 		return
@@ -45,6 +44,7 @@ func run(args []string) {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
+	var e *Environment
 	switch args[1] {
 	case "store":
 		e = NewRandEnvironment(&c.Environment)
@@ -72,21 +72,25 @@ func run(args []string) {
 		return
 	}
 	pM := NewPopulation(&c.Population, c.Population.AgeFactor, metricsM)
+	defer pM.stop()
 	pI := NewPopulation(&c.Population, 0, metricsI)
+	defer pI.stop()
 	for i, c := range pM.Creatures {
 		pI.Creatures[i] = c.Copy()
 	}
-	defer close(pM.workCh)
-	defer close(pI.workCh)
 	ctx, cancel := context.WithCancel(context.Background())
-	diffCum := 0
-	defer func() {
-		fmt.Printf("cumulative diff: %d\n", diffCum)
-	}()
 	defer cancel()
-	go InterruptHandler(cancel)
-	defer results()
-	for year := range c.Simulation.Years {
+	go InterruptHandler(ctx, cancel)
+	diffCum := 0
+	started := time.Now()
+	year := 0
+	defer func() {
+		elapsed := time.Since(started)
+		results()
+		fmt.Printf("\nSimulation for %d years finished in %v (%.3f years per second)\n", year+1, elapsed, float64(year)/elapsed.Seconds())
+		fmt.Printf("Cumulative relative difference %.3f\n", float64(diffCum)/float64(year))
+	}()
+	for year = range c.Simulation.Years {
 		select {
 		case <-ctx.Done():
 			return
@@ -94,8 +98,8 @@ func run(args []string) {
 			e.Next()
 			pM.Next(e)
 			pI.Next(e)
-			diff := pM.Size() - pI.Size()
-			fmt.Printf("year %5d,\tMortal: %6d\tdiff: %+5d,\tImmortal: %6d\tfactor: %s\n", year, pM.Size(), diff, pI.Size(), e.factorsList())
+			diff := pI.Size() - pM.Size()
+			fmt.Printf("year %6d\tMortal: %6d\tdiff: %+5d,\tImmortal: %6d\tenvironment: %s\r", year, pM.Size(), diff, pI.Size(), e.factorsList())
 			diffCum += diff
 			if pM.Size() == 0 || pI.Size() == 0 {
 				return
@@ -104,11 +108,14 @@ func run(args []string) {
 	}
 }
 
-func InterruptHandler(onFinish func()) {
+func InterruptHandler(ctx context.Context, onFinish func()) {
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
-	onFinish()
+	select {
+	case <-ctx.Done():
+	case <-sig:
+		onFinish()
+	}
 }
 
 func results() {

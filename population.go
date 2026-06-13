@@ -9,7 +9,7 @@ import (
 	"slices"
 )
 
-const chSize = 2024
+const chSize = 2048
 
 type Population struct {
 	Creatures    []*Creature
@@ -35,12 +35,16 @@ func NewPopulation(cp *Pop, ageFactor float64, m *Metrics) *Population {
 		FertilityAge: cp.FertilityAge,
 		AgeFactor:    ageFactor,
 		metrics:      m,
-		workCh:       make(chan func(), chSize),
+		workCh:       make(chan func(), chSize), // workers pool input channel
 	}
 	for i := range cp.InitSize {
 		p.Creatures[i] = NewCreature(p.Mutate, cp.Chromosomes, cp.Gens, cp.MutationP)
 	}
-	for range runtime.NumCPU() / 2 {
+	cpuCount := runtime.NumCPU()
+	if cpuCount > 1 {
+		cpuCount-- // leave one cpu free for other processes
+	}
+	for range cpuCount {
 		go func() {
 			for f := range p.workCh {
 				f()
@@ -48,6 +52,10 @@ func NewPopulation(cp *Pop, ageFactor float64, m *Metrics) *Population {
 		}()
 	}
 	return &p
+}
+
+func (p *Population) stop() {
+	close(p.workCh)
 }
 
 type workResults struct {
@@ -59,11 +67,12 @@ type workResults struct {
 func (p *Population) Next(e *Environment) {
 	res := make(chan workResults, chSize)
 	go func() {
-		capacityFactor := e.CapacityFactor(p.Size())
+		envFactor := e.CapacityFactor(p.Size()) * p.MatchFactor
 		for _, c := range p.Creatures {
+			p.metrics.AgeStore(c.age)
 			p.workCh <- func() {
 				wr := workResults{crs: make([]*Creature, 0, 2)}
-				dead, child := c.Year(e, p, capacityFactor)
+				dead, child := c.Year(e, p, envFactor)
 				if !dead {
 					wr.crs = append(wr.crs, c)
 				} else {
@@ -95,7 +104,13 @@ func (p *Population) Next(e *Environment) {
 }
 
 func (p Population) RandomPartner() *Creature {
-	return p.Creatures[rand.Intn(len(p.Creatures))]
+	for range 10 {
+		partner := p.Creatures[rand.Intn(len(p.Creatures))]
+		if partner.age >= p.FertilityAge {
+			return partner
+		}
+	}
+	return nil
 }
 
 func (p *Population) Size() int {

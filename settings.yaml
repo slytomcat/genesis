@@ -1,20 +1,20 @@
 environment:
-  factors:         1      # factors count
+  factors:         2      # factors count
   factor_vol:      8      # factor initial volume
-  inc:             0.015  # factor increase
+  inc:             0.011  # factor increase
   delta:           0.6    # factor deviation
-  capacity:        100    # env capacity limit
-  over_cap_factor: 4.5    # over capacity penalty
+  capacity:        1000   # env capacity limit
+  over_cap_factor: 5.5    # over capacity penalty
 population:
-  init_size:       40     # initial population size
-  chromosomes:     5      # number of chromosomes
+  init_size:       800    # initial population size
+  chromosomes:     6      # number of chromosomes
   gens:            8      # initial chromosome length = env factor initial volume
-  match_factor:    0.3    # env match factor
-  birth_p:         0.5    # birth probability
-  child_factor:    2      # capacity factor increase for children
-  mutation_p:      0.05   # mutation probability
-  mutation_delta:  3      # mutation size
-  fertility_age:   1      # fertility age
-  age_factor:      0.001  # age factor
+  match_factor:    0.05   # env match factor
+  birth_p:         0.05   # birth probability
+  child_factor:    0.25   # capacity factor decrease for children
+  mutation_p:      0.85   # mutation probability
+  mutation_delta:  7      # mutation size
+  fertility_age:   15     # fertility age
+  age_factor:      0.0023 # age factor
 simulation:
   years:           100000 # number of simulation years
