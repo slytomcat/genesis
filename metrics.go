@@ -112,22 +112,22 @@ func (m *Metrics) Store() {
 	min, avg, max := minMidMax(m.popHist)
 	years := len(m.popHist)
 	xDiv := years / 300
-	xDesc := fmt.Sprintf("min/avg/max population size by ages: %v / %v / %v", min, avg, max)
-	MakeAndSaveHistogram(m.name+"_size", "Population size by ages", xDesc, "size", HistXY(m.popHist, xDiv, 1))
+	xDesc := fmt.Sprintf("min/avg/max population size by years: %v / %v / %v", min, avg, max)
+	MakeAndSaveHistogram(m.name+"_size", "Population size by years", xDesc, "size", HistXY(m.popHist, xDiv, 1))
 	min, avg, max = minMidMax(m.bornHist)
-	xDesc = fmt.Sprintf("min/avg/max born by ages: %v / %v / %v", min, avg, max)
-	MakeAndSaveHistogram(m.name+"_born", "Born by ages", xDesc, "size", HistXY(m.bornHist, xDiv, 1))
+	xDesc = fmt.Sprintf("min/avg/max born by years: %v / %v / %v", min, avg, max)
+	MakeAndSaveHistogram(m.name+"_born", "Born by years", xDesc, "size", HistXY(m.bornHist, xDiv, 1))
 	min, avg, max = minMidMax(m.deathHist)
-	xDesc = fmt.Sprintf("min/avg/max death by ages: %v / %v / %v", min, avg, max)
-	MakeAndSaveHistogram(m.name+"_dead", "Death by ages", xDesc, "size", HistXY(m.deathHist, xDiv, 1))
+	xDesc = fmt.Sprintf("min/avg/max death by years: %v / %v / %v", min, avg, max)
+	MakeAndSaveHistogram(m.name+"_dead", "Death by years", xDesc, "size", HistXY(m.deathHist, xDiv, 1))
 	min, avg, max, _ = minMidMaxTotal(m.popCount)
 	xDesc = fmt.Sprintf("min/avg/max population size: %v / %v / %v", min, avg, max)
 	MakeAndSaveHistogram(m.name+"_sizes", "Count of years by population size", xDesc, "years", xyVals(m.popCount, len(m.popCount)/50, 1))
 	min, avg, max, total := minMidMaxTotal(m.dAgeCount)
-	xDesc = fmt.Sprintf("min/avg/max death age: %v (p= %1.4f) / %v / %v\ntotal creatures: %v", min, float64(m.dAgeCount[min])/float64(total)*100, avg, max, total)
+	xDesc = fmt.Sprintf("min/avg/max death age: %v (p= %1.4f%%) / %v / %v\ntotal creatures: %v", min, float64(m.dAgeCount[min])/float64(total)*100, avg, max, total)
 	MakeAndSaveHistogram(m.name+"_deaths", "Relative deaths by age", xDesc, "percent", xyVals(m.dAgeCount, 1, float64(total)/100))
 	min, _, max, total = minMidMaxTotal(m.ageCount)
-	xDesc = fmt.Sprintf("min/max age:  %v (%2.3f%%) / %v \navg creatures per year: %v", min, float64(m.ageCount[min])/float64(total)*100, max, float64(total)/float64(years))
+	xDesc = fmt.Sprintf("min/max age:  %v (%2.3f%%) / %v \nrelative headcount by ages: %v", min, float64(m.ageCount[min])/float64(total)*100, max, float64(total)/float64(years))
 	MakeAndSaveHistogram(m.name+"_ages", "Headcount by age", xDesc, "percent", xyVals(m.ageCount, 1, float64(total)/100))
 	dProbability := map[int]float64{}
 	xs := make([]int, 0, len(m.dAgeCount))
@@ -145,6 +145,7 @@ func (m *Metrics) Store() {
 		xys[i].X = float64(x)
 		xys[i].Y = dProbability[x]
 	}
-	xDesc = fmt.Sprintf("P(%d) = %2.3f%%, P(%d) = %2.3f%%, P(%d) = %2.3f%%, P(%d) = %2.3f%%", xs[0], dProbability[xs[0]], xs[5], dProbability[xs[5]], xs[20], dProbability[xs[20]], xs[60], dProbability[xs[60]])
+	xDesc = fmt.Sprintf("P(%d) = %2.3f%%, P(%d) = %2.3f%%, P(%d) = %2.3f%%, P(%d) = %2.3f%%",
+		xs[0], dProbability[xs[0]], xs[5], dProbability[xs[5]], xs[20], dProbability[xs[20]], xs[60], dProbability[xs[60]])
 	MakeAndSaveHistogram(m.name+"_death_probability", "Death probability by age", xDesc, "percent", &xys)
 }

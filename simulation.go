@@ -86,8 +86,9 @@ func run(args []string) {
 	year := 0
 	defer func() {
 		elapsed := time.Since(started)
+		fmt.Println()
 		results()
-		fmt.Printf("\nSimulation for %d years finished in %v (%.3f years per second)\n", year+1, elapsed, float64(year)/elapsed.Seconds())
+		fmt.Printf("Simulation for %d years finished in %v (%.3f years per second)\n", year+1, elapsed, float64(year)/elapsed.Seconds())
 		fmt.Printf("Cumulative relative difference %.3f\n", float64(diffCum)/float64(year))
 	}()
 	for year = range c.Simulation.Years {
